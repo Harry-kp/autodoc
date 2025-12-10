@@ -1,0 +1,139 @@
+name: Setup AutoDoc in Target Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_repository:
+        description: 'Target repository (e.g., username/repo-name)'
+        required: true
+      target_branch:
+        description: 'Target branch (usually main or master)'
+        required: false
+        default: 'main'
+
+jobs:
+  setup-autodoc:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout this template repository
+        uses: actions/checkout@v4
+      
+      - name: Generate setup script
+        id: generate
+        run: |
+          cat > setup.sh << 'SCRIPT_EOF'
+          #!/bin/bash
+          set -e
+          
+          TARGET_REPO="${{ github.event.inputs.target_repository }}"
+          TARGET_BRANCH="${{ github.event.inputs.target_branch }}"
+          
+          echo "🚀 Setting up AutoDoc in $TARGET_REPO"
+          
+          # Clone target repository
+          echo "📥 Cloning target repository..."
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${TARGET_REPO}.git" target-repo
+          cd target-repo
+          
+          # Create new branch for setup
+          SETUP_BRANCH="autodoc-setup-$(date +%s)"
+          git checkout -b "$SETUP_BRANCH"
+          
+          # Create directories
+          echo "📁 Creating directories..."
+          mkdir -p .github/agents
+          mkdir -p .github/workflows
+          
+          # Copy agent configuration
+          echo "🤖 Copying agent configuration..."
+          cp ../github/agents/docusaurus.md .github/agents/
+          
+          # Copy workflow
+          echo "⚙️  Copying workflow..."
+          cp ../.github/workflows/auto-docs.yml .github/workflows/
+          
+          # Create helpful README addition
+          cat > AUTODOC_SETUP.md << 'README_EOF'
+          # AutoDoc Setup Complete! 🎉
+          
+          This PR adds automated documentation using GitHub Copilot.
+          
+          ## What was added:
+          
+          - `.github/agents/docusaurus.md` - Copilot agent specialized in Docusaurus
+          - `.github/workflows/auto-docs.yml` - Workflow that triggers on PR merges
+          
+          ## How it works:
+          
+          1. Merge a PR with code changes
+          2. GitHub Action automatically creates a documentation issue
+          3. Issue is assigned to @copilot with @docusaurus-agent
+          4. Copilot analyzes changes and creates a documentation PR
+          5. Review and merge the documentation PR
+          
+          ## Next steps:
+          
+          1. **Merge this PR** to activate AutoDoc
+          2. **Ensure GitHub Copilot is enabled** on this repository
+          3. **Test it**: Merge a code PR and watch for the documentation issue
+          
+          ## Customize:
+          
+          - Edit `.github/agents/docusaurus.md` to customize agent behavior
+          - Edit `.github/workflows/auto-docs.yml` to customize triggers
+          
+          ## Need help?
+          
+          - [AutoDoc Documentation](https://github.com/Harry-kp/autodoc)
+          - Create an issue in the AutoDoc repository
+          
+          ---
+          
+          Made with ❤️ by AutoDoc
+          README_EOF
+          
+          # Commit changes
+          echo "💾 Committing changes..."
+          git add .
+          git commit -m "feat: Add AutoDoc agent for automatic documentation
+
+          - Add Copilot agent specialized in Docusaurus documentation
+          - Add GitHub Actions workflow to trigger docs on PR merge
+          - Enable automatic documentation maintenance
+          
+          This was set up using the AutoDoc template.
+          See AUTODOC_SETUP.md for details."
+          
+          # Push branch
+          echo "📤 Pushing branch..."
+          git push origin "$SETUP_BRANCH"
+          
+          # Create PR using GitHub CLI
+          echo "📝 Creating pull request..."
+          gh pr create \
+            --title "🤖 Set up AutoDoc for automatic documentation" \
+            --body "$(cat AUTODOC_SETUP.md)" \
+            --base "$TARGET_BRANCH" \
+            --head "$SETUP_BRANCH" \
+            --label "documentation,enhancement"
+          
+          echo "✅ Setup complete!"
+          echo "Check the PR in your repository: https://github.com/${TARGET_REPO}/pulls"
+          SCRIPT_EOF
+          
+          chmod +x setup.sh
+      
+      - name: Run setup script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./setup.sh
+      
+      - name: Output success message
+        run: |
+          echo "🎉 AutoDoc setup initiated!"
+          echo "Check your target repository for the setup PR."
+          echo ""
+          echo "Repository: ${{ github.event.inputs.target_repository }}"
+          echo "Branch: ${{ github.event.inputs.target_branch }}"

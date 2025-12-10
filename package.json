@@ -1,0 +1,23 @@
+{
+  "name": "autodoc-template",
+  "version": "1.0.0",
+  "description": "Automated Docusaurus documentation with GitHub Copilot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Harry-kp/autodoc.git"
+  },
+  "keywords": [
+    "documentation",
+    "docusaurus",
+    "github-copilot",
+    "automation",
+    "ai",
+    "developer-tools"
+  ],
+  "author": "Harry KP <chaudharyharshit9@gmail.com> (https://github.com/Harry-kp)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Harry-kp/autodoc/issues"
+  },
+  "homepage": "https://github.com/Harry-kp/autodoc#readme"
+}
